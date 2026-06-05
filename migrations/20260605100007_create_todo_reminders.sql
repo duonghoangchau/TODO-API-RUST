@@ -1,0 +1,10 @@
+CREATE TABLE IF NOT EXISTS todo_reminders (
+    id BIGSERIAL PRIMARY KEY,
+    todo_id BIGINT NOT NULL REFERENCES todos(id) ON DELETE CASCADE,
+    remind_at TIMESTAMP NOT NULL,
+    message TEXT,
+    is_sent BOOLEAN NOT NULL DEFAULT FALSE,
+    sent_at TIMESTAMP NULL,
+    created_at TIMESTAMP NOT NULL DEFAULT NOW(),
+    updated_at TIMESTAMP NOT NULL DEFAULT NOW()
+);

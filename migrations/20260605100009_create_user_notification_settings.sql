@@ -1,0 +1,9 @@
+CREATE TABLE IF NOT EXISTS user_notification_settings (
+    id BIGSERIAL PRIMARY KEY,
+    user_id BIGINT NOT NULL UNIQUE REFERENCES users(id) ON DELETE CASCADE,
+    email_enabled BOOLEAN NOT NULL DEFAULT TRUE,
+    reminder_enabled BOOLEAN NOT NULL DEFAULT TRUE,
+    daily_summary_enabled BOOLEAN NOT NULL DEFAULT FALSE,
+    created_at TIMESTAMP NOT NULL DEFAULT NOW(),
+    updated_at TIMESTAMP NOT NULL DEFAULT NOW()
+);

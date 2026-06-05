@@ -1,0 +1,12 @@
+CREATE TABLE IF NOT EXISTS notification_logs (
+    id BIGSERIAL PRIMARY KEY,
+    user_id BIGINT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    todo_id BIGINT NULL REFERENCES todos(id) ON DELETE SET NULL,
+    reminder_id BIGINT NULL REFERENCES todo_reminders(id) ON DELETE SET NULL,
+    type VARCHAR(50) NOT NULL,
+    title VARCHAR(255) NOT NULL,
+    message TEXT NOT NULL,
+    status VARCHAR(50) NOT NULL DEFAULT 'pending',
+    sent_at TIMESTAMP NULL,
+    created_at TIMESTAMP NOT NULL DEFAULT NOW()
+);
