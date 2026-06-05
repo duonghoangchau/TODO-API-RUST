@@ -15,9 +15,11 @@ use crate::{
     utils::{jwt, password},
 };
 
+// Service này chứa toàn bộ nghiệp vụ auth tách khỏi tầng HTTP.
 pub struct AuthService;
 
 impl AuthService {
+    // Đăng ký user mới, gán role USER mặc định và phát token ngay sau khi tạo tài khoản.
     pub async fn register(
         pool: &PgPool,
         payload: RegisterRequest,
@@ -45,11 +47,13 @@ impl AuthService {
                 password_hash,
             },
         )
-        .await?;
+        .await
+        .map_err(map_create_user_error)?;
 
         build_auth_response(pool, user).await
     }
 
+    // Đăng nhập bằng cách kiểm tra email, trạng thái user và password đã hash.
     pub async fn login(pool: &PgPool, payload: LoginRequest) -> Result<AuthResponse, AppError> {
         validate_login_payload(&payload)?;
 
@@ -75,6 +79,7 @@ impl AuthService {
         build_auth_response(pool, user).await
     }
 
+    // Refresh chỉ tạo access token mới, còn refresh token cũ vẫn được giữ nguyên.
     pub async fn refresh(
         pool: &PgPool,
         payload: RefreshTokenRequest,
@@ -114,6 +119,7 @@ impl AuthService {
         })
     }
 
+    // Logout hiện tại thu hồi refresh token để lần sau không dùng lại được nữa.
     pub async fn logout(pool: &PgPool, payload: RefreshTokenRequest) -> Result<(), AppError> {
         let refresh_token = payload.refresh_token.trim();
         if refresh_token.is_empty() {
@@ -131,6 +137,7 @@ impl AuthService {
     }
 }
 
+// Hàm dùng chung để tạo access token + refresh token sau register/login.
 async fn build_auth_response(pool: &PgPool, user: User) -> Result<AuthResponse, AppError> {
     let access_token = jwt::generate_access_token(user.id)?;
     let refresh_token = jwt::generate_refresh_token();
@@ -149,6 +156,7 @@ async fn build_auth_response(pool: &PgPool, user: User) -> Result<AuthResponse, 
     Ok(AuthResponse::from_user(user, access_token, refresh_token))
 }
 
+// Validate dữ liệu đầu vào ở tầng service để handler gọn và business rule tập trung.
 fn validate_register_payload(payload: &RegisterRequest) -> Result<(), AppError> {
     if payload.full_name.trim().is_empty() {
         return Err(AppError::Validation("Full name is required".to_string()));
@@ -171,6 +179,7 @@ fn validate_register_payload(payload: &RegisterRequest) -> Result<(), AppError> 
     Ok(())
 }
 
+// Login chỉ cần kiểm tra các trường bắt buộc trước khi query database.
 fn validate_login_payload(payload: &LoginRequest) -> Result<(), AppError> {
     if payload.email.trim().is_empty() {
         return Err(AppError::Validation("Email is required".to_string()));
@@ -183,6 +192,19 @@ fn validate_login_payload(payload: &LoginRequest) -> Result<(), AppError> {
     Ok(())
 }
 
+// Chuẩn hóa email để tránh duplicate do khác hoa/thường hoặc khoảng trắng.
 fn normalize_email(email: &str) -> String {
     email.trim().to_lowercase()
+}
+
+// Nếu gặp unique constraint ở DB thì đổi sang lỗi nghiệp vụ dễ hiểu hơn.
+fn map_create_user_error(error: AppError) -> AppError {
+    match error {
+        AppError::Database(sqlx::Error::Database(db_error))
+            if db_error.code().as_deref() == Some("23505") =>
+        {
+            AppError::Conflict("Email already exists".to_string())
+        }
+        other => other,
+    }
 }

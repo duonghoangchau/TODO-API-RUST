@@ -2,6 +2,7 @@ use chrono::NaiveDateTime;
 use serde::{Deserialize, Serialize};
 use sqlx::FromRow;
 
+// Model cho bảng refresh_tokens để theo dõi phiên đăng nhập dài hạn.
 #[derive(Debug, Clone, Serialize, Deserialize, FromRow)]
 pub struct RefreshToken {
     pub id: i64,

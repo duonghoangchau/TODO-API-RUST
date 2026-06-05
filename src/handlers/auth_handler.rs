@@ -9,6 +9,7 @@ use crate::{
     utils::response,
 };
 
+// Handler chỉ làm nhiệm vụ nhận HTTP request, gọi service và trả JSON response.
 pub async fn register(
     State(state): State<AppState>,
     Json(payload): Json<RegisterRequest>,
@@ -20,6 +21,7 @@ pub async fn register(
     ))
 }
 
+// Đăng nhập bằng email + password và trả về bộ token mới.
 pub async fn login(
     State(state): State<AppState>,
     Json(payload): Json<LoginRequest>,
@@ -31,6 +33,7 @@ pub async fn login(
     ))
 }
 
+// Dùng refresh token còn hiệu lực để xin access token mới.
 pub async fn refresh(
     State(state): State<AppState>,
     Json(payload): Json<RefreshTokenRequest>,
@@ -42,6 +45,7 @@ pub async fn refresh(
     ))
 }
 
+// Logout theo refresh token để chặn việc dùng lại token cũ.
 pub async fn logout(
     State(state): State<AppState>,
     Json(payload): Json<RefreshTokenRequest>,

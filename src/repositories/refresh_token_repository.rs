@@ -3,15 +3,18 @@ use sqlx::PgPool;
 
 use crate::{error::AppError, models::refresh_token::RefreshToken};
 
+// Dữ liệu tối thiểu để lưu một refresh token mới vào DB.
 pub struct CreateRefreshTokenParams {
     pub user_id: i64,
     pub token: String,
     pub expires_at: NaiveDateTime,
 }
 
+// Repository này quản lý vòng đời refresh token.
 pub struct RefreshTokenRepository;
 
 impl RefreshTokenRepository {
+    // Lưu refresh token sau khi register hoặc login thành công.
     pub async fn create(
         pool: &PgPool,
         params: CreateRefreshTokenParams,
@@ -32,6 +35,7 @@ impl RefreshTokenRepository {
         Ok(refresh_token)
     }
 
+    // Chỉ lấy token còn active, chưa bị revoke.
     pub async fn find_active_by_token(
         pool: &PgPool,
         token: &str,
@@ -50,6 +54,7 @@ impl RefreshTokenRepository {
         Ok(refresh_token)
     }
 
+    // Thu hồi token khi logout để ngăn việc tái sử dụng.
     pub async fn revoke_by_token(pool: &PgPool, token: &str) -> Result<bool, AppError> {
         let rows_affected = sqlx::query(
             r#"

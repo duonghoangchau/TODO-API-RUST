@@ -2,6 +2,7 @@ use serde::Serialize;
 
 use crate::models::user::User;
 
+// Phần user public-safe trả về cho client, không lộ password hash.
 #[derive(Debug, Serialize)]
 pub struct AuthUserResponse {
     pub id: i64,
@@ -12,6 +13,7 @@ pub struct AuthUserResponse {
     pub is_active: bool,
 }
 
+// Response chuẩn sau register/login.
 #[derive(Debug, Serialize)]
 pub struct AuthResponse {
     pub access_token: String,
@@ -20,6 +22,7 @@ pub struct AuthResponse {
     pub user: AuthUserResponse,
 }
 
+// Response gọn hơn cho API refresh.
 #[derive(Debug, Serialize)]
 pub struct RefreshTokenResponse {
     pub access_token: String,
@@ -27,6 +30,7 @@ pub struct RefreshTokenResponse {
 }
 
 impl AuthResponse {
+    // Chuyển model User nội bộ sang response an toàn để trả cho client.
     pub fn from_user(user: User, access_token: String, refresh_token: String) -> Self {
         Self {
             access_token,

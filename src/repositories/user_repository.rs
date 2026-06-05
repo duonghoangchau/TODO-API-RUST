@@ -2,6 +2,7 @@ use sqlx::PgPool;
 
 use crate::{error::AppError, models::user::User};
 
+// Dữ liệu cần thiết để tạo user mới từ tầng service.
 pub struct CreateUserParams {
     pub role_id: i64,
     pub full_name: String,
@@ -9,9 +10,11 @@ pub struct CreateUserParams {
     pub password_hash: String,
 }
 
+// Repository chỉ tập trung vào truy vấn bảng users.
 pub struct UserRepository;
 
 impl UserRepository {
+    // Tìm user theo email để phục vụ login hoặc kiểm tra trùng khi register.
     pub async fn find_by_email(pool: &PgPool, email: &str) -> Result<Option<User>, AppError> {
         let user = sqlx::query_as::<_, User>(
             r#"
@@ -27,6 +30,7 @@ impl UserRepository {
         Ok(user)
     }
 
+    // Tìm user theo id để phục vụ các flow cần xác nhận chủ thể từ token.
     pub async fn find_by_id(pool: &PgPool, id: i64) -> Result<Option<User>, AppError> {
         let user = sqlx::query_as::<_, User>(
             r#"
@@ -42,6 +46,7 @@ impl UserRepository {
         Ok(user)
     }
 
+    // Tạo user mới và trả lại bản ghi vừa insert từ database.
     pub async fn create(pool: &PgPool, params: CreateUserParams) -> Result<User, AppError> {
         let user = sqlx::query_as::<_, User>(
             r#"

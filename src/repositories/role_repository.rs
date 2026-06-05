@@ -2,6 +2,7 @@ use sqlx::PgPool;
 
 use crate::{error::AppError, models::role::Role};
 
+// Repository đơn giản để tra cứu role mặc định cho user mới.
 pub struct RoleRepository;
 
 impl RoleRepository {
